@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Quiz Inventarios PRO</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial, Helvetica, sans-serif;
+background:linear-gradient(135deg,#141e30,#243b55);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+#game{
+width:1280px;
+height:720px;
+text-align:center;
+padding:20px;
+}
+
+h1{
+font-size:60px;
+}
+
+#menu{
+margin-top:40px;
+}
+
+button{
+font-size:32px;
+padding:25px 60px;
+margin:15px;
+border:none;
+border-radius:15px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.start{background:#27ae60;color:white;}
+
+#question{
+font-size:52px;
+margin:40px 60px;
+font-weight:bold;
+}
+
+.answers{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:30px;
+width:85%;
+margin:auto;
+}
+
+.answer{
+font-size:34px;
+padding:40px;
+border:none;
+border-radius:20px;
+cursor:pointer;
+color:white;
+font-weight:bold;
+}
+
+.red{background:#e74c3c;}
+.blue{background:#3498db;}
+.green{background:#27ae60;}
+.yellow{background:#f1c40f;color:black;}
+
+#timer{
+font-size:36px;
+margin-top:20px;
+}
+
+#score{
+font-size:38px;
+margin-top:10px;
+}
+
+#explanation{
+font-size:34px;
+margin-top:30px;
+color:#f1c40f;
+}
+
+#qr{
+margin-top:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<h1>🎮 QUIZ DE INVENTARIOS</h1>
+
+<div id="menu">
+
+<p style="font-size:36px">Escanea el QR para entrar desde tu celular</p>
+
+<img id="qr" width="180"
+src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://tu-quiz.com">
+
+<br><br>
+
+<button class="start" onclick="startGame()">INICIAR QUIZ</button>
+
+</div>
+
+<div id="question"></div>
+
+<div class="answers" id="answers"></div>
+
+<div id="timer"></div>
+
+<div id="score"></div>
+
+<div id="explanation"></div>
+
+</div>
+
+<script>
+
+let questionBank=[
+
+{q:"¿Qué es un inventario?",a:["Registro de bienes","Un impuesto","Publicidad","Factura"],c:0,e:"Un inventario es el registro y control de bienes almacenados en una empresa."},
+
+{q:"¿Para qué sirve el inventario?",a:["Eliminar ventas","Controlar existencias","Subir precios","Eliminar compras"],c:1,e:"El inventario permite controlar la cantidad de productos disponibles."},
+
+{q:"¿Qué es materia prima?",a:["Producto terminado","Material para producir","Dinero","Clientes"],c:1,e:"Las materias primas son insumos utilizados para fabricar productos."},
+
+{q:"Inventario en proceso significa:",a:["Productos en fabricación","Productos vendidos","Productos dañados","Productos importados"],c:0,e:"Son productos que aún están en producción."},
+
+{q:"Inventario de productos terminados:",a:["Listos para vender","Material sin usar","Clientes","Proveedores"],c:0,e:"Son productos finalizados disponibles para venta."},
+
+{q:"FIFO significa:",a:["Primero en entrar primero en salir","Último en entrar primero en salir","Precio promedio","Inventario final"],c:0,e:"FIFO significa que los primeros productos que ingresan son los primeros en venderse."},
+
+{q:"LIFO significa:",a:["Primero en entrar primero en salir","Último en entrar primero en salir","Inventario mínimo","Inventario promedio"],c:1,e:"LIFO indica que el último producto ingresado es el primero en salir."},
+
+{q:"Inventario de seguridad sirve para:",a:["Evitar faltantes","Publicidad","Ventas","Marketing"],c:0,e:"Es una reserva para enfrentar demanda inesperada."},
+
+{q:"Lead time es:",a:["Tiempo de entrega","Precio","Tipo de cliente","Tipo de producto"],c:0,e:"Es el tiempo que tarda un pedido en llegar."},
+
+{q:"Inventario obsoleto es:",a:["Producto nuevo","Producto que ya no se vende","Producto barato","Producto importado"],c:1,e:"Es un producto que perdió valor o demanda."}
+
+];
+
+/* duplicar hasta ~100 */
+
+while(questionBank.length<100){
+
+let base=questionBank[Math.floor(Math.random()*10)];
+
+questionBank.push({...base});
+
+}
+
+let questions=[];
+let index=0;
+let score=0;
+let time=20;
+let timer;
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+
+function startGame(){
+
+document.getElementById("menu").style.display="none";
+
+questions=shuffle([...questionBank]).slice(0,20);
+
+nextQuestion();
+
+}
+
+function nextQuestion(){
+
+document.getElementById("explanation").innerHTML="";
+
+if(index>=questions.length){
+
+document.getElementById("question").innerHTML="🏆 QUIZ TERMINADO";
+document.getElementById("answers").innerHTML="";
+document.getElementById("timer").innerHTML="";
+document.getElementById("score").innerHTML="Puntaje final: "+score+" / "+questions.length;
+
+return;
+}
+
+let q=questions[index];
+
+document.getElementById("question").innerHTML=q.q;
+
+let colors=["red","blue","green","yellow"];
+
+let html="";
+
+q.a.forEach((ans,i)=>{
+
+html+=`<button class="answer ${colors[i]}" onclick="answer(${i})">${ans}</button>`;
+
+});
+
+document.getElementById("answers").innerHTML=html;
+
+time=20;
+
+timer=setInterval(()=>{
+
+document.getElementById("timer").innerHTML="⏱ Tiempo: "+time;
+
+time--;
+
+if(time<0){
+
+clearInterval(timer);
+
+showExplanation(false);
+
+}
+
+},1000);
+
+}
+
+function answer(i){
+
+clearInterval(timer);
+
+let correct=(i===questions[index].c);
+
+if(correct) score++;
+
+showExplanation(correct);
+
+}
+
+function showExplanation(correct){
+
+let q=questions[index];
+
+document.getElementById("explanation").innerHTML=
+(correct?"✅ Correcto: ":"❌ Incorrecto: ")+q.e;
+
+index++;
+
+setTimeout(nextQuestion,3500);
+
+}
+
+</script>
+
+</body>
+</html>
